@@ -1,13 +1,37 @@
+import http from 'node:http';
+import { Server } from 'socket.io';
 import app from './app';
 import { connectDB } from './config/database';
-import { connectWebSocket } from './config/webSocket';
 
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/wallaclone';
 
 const startServer = async () => {
   await connectDB(MONGODB_URI);
-  const server = connectWebSocket(app);
+
+  const server = http.createServer(app);
+  const io = new Server(server, {
+    cors: {
+      origin: process.env.FRONTEND_URL ?? 'http://localhost:3001',
+      methods: ['GET', 'POST'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      credentials: true,
+    }
+  });
+
+  io.on('connection', (socket) => {
+    socket.on('join', (room) => {
+      console.log(`Socket ${socket.id} joining ${room}`);
+      socket.join(room);
+    });
+
+    socket.on('send_message', (data) => {
+      const { message, room } = data;
+      console.log(`msg: ${message.contenido}, room: ${room}`);
+      socket.broadcast.to(room).emit('receive_message', message);
+    });
+  });
+  
   server.listen(PORT, () => {
     console.log(`Servidor corriendo en el puerto ${PORT}`);
     console.log('Environment variables:');

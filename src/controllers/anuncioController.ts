@@ -57,7 +57,8 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
 
     // Filtro por tag
     if (tag) {
-      searchCriteria.tags = { $regex: tag, $options: 'i' };
+      const tagsArray = tag.split(',').map(t => t.trim()); 
+      searchCriteria.tags = { $in: tagsArray };
     }
 
     // Filtro por rango de precio
@@ -75,6 +76,9 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
     if (tipoAnuncio) {
       searchCriteria.tipoAnuncio = tipoAnuncio;
     }
+
+    // Filtro por estado
+    searchCriteria.estado = { $ne: 'vendido'};
 
     const totalAnuncios = await Anuncio.countDocuments(searchCriteria);
 

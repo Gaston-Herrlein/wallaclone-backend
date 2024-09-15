@@ -1021,19 +1021,19 @@
         }
       }
       },
-      "/api/chat/{anuncioId}": {
+     "/api/chat/{chatId}": {
     "get": {
       "summary": "Obtener mensajes de un chat",
       "tags": ["Chat"],
       "parameters": [
         {
           "in": "path",
-          "name": "anuncioId",
+          "name": "chatId",
           "required": true,
           "schema": {
             "type": "string"
           },
-          "description": "ID del anuncio asociado al chat"
+          "description": "ID del chat para obtener mensajes"
         },
         {
           "in": "query",
@@ -1066,8 +1066,7 @@
                     "type": "object",
                     "properties": {
                       "_id": { "type": "string" },
-                      "nombre": { "type": "string" },
-                      "imagen": { "type": "string" }
+                      "nombre": { "type": "string" }
                     }
                   },
                   "participantes": {
@@ -1076,8 +1075,7 @@
                       "type": "object",
                       "properties": {
                         "_id": { "type": "string" },
-                        "nombre": { "type": "string" },
-                        "email": { "type": "string" }
+                        "nombre": { "type": "string" }
                       }
                     }
                   },
@@ -1086,19 +1084,19 @@
                     "items": {
                       "type": "object",
                       "properties": {
+                        "id": { "type": "string" },
                         "emisor": { "type": "string" },
                         "contenido": { "type": "string" },
-                        "fechaEnvio": { "type": "string", "format": "date-time" },
-                        "leido": { "type": "boolean" }
+                        "fechaEnvio": { "type": "string", "format": "date-time" }
                       }
                     }
                   },
-                  "paginacion": {
+                  "metadata": {
                     "type": "object",
                     "properties": {
-                      "pagina": { "type": "integer" },
-                      "totalPaginas": { "type": "integer" },
                       "totalMensajes": { "type": "integer" },
+                      "paginaActual": { "type": "integer" },
+                      "totalPaginas": { "type": "integer" },
                       "mensajesPorPagina": { "type": "integer" }
                     }
                   }
@@ -1126,7 +1124,107 @@
         }
       ]
     }
-   }
+  },
+   "/api/chat/adverts/{advertId}": {
+    "get": {
+      "summary": "Obtener ID de chat por ID de anuncio",
+      "tags": ["Chat"],
+      "parameters": [
+        {
+          "in": "path",
+          "name": "advertId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "ID del anuncio para obtener el ID del chat"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "ID de chat obtenido exitosamente",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chatId": {
+                    "type": "string",
+                    "description": "ID del chat"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "Solicitud incorrecta, falta el ID del anuncio o es inválido"
+        },
+        "404": {
+          "description": "Chat no encontrado para el anuncio proporcionado"
+        },
+        "500": {
+          "description": "Error del servidor"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
+    }
+  },
+  "/api/chat/create": {
+  "post": {
+    "summary": "Crear un nuevo chat para un anuncio",
+    "tags": ["Chat"],
+    "security": [{ "bearerAuth": [] }],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "advertId": {
+                "type": "string",
+                "description": "ID del anuncio asociado al chat"
+              }
+            },
+            "required": ["advertId"]
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Chat creado exitosamente",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "chatId": {
+                  "type": "string",
+                  "description": "ID del chat creado"
+                }
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Solicitud incorrecta"
+      },
+      "404": {
+        "description": "Anuncio no encontrado"
+      },
+      "500": {
+        "description": "Error del servidor"
+      }
+    }
+  }
+}
   },
   "components": {
     "schemas": {

@@ -2,7 +2,8 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IChat extends Document {
   anuncio: mongoose.Types.ObjectId;
-  participantes: mongoose.Types.ObjectId[];
+  owner: mongoose.Types.ObjectId;
+  user: mongoose.Types.ObjectId;
   fechaCreacion: Date;
   mensajes: Array<{
     _id?: mongoose.Types.ObjectId; 
@@ -15,7 +16,8 @@ export interface IChat extends Document {
 
 const ChatSchema: Schema = new Schema({
   anuncio: { type: Schema.Types.ObjectId, ref: 'Anuncio', required: true },
-  participantes: [{ type: Schema.Types.ObjectId, ref: 'Usuario' }],
+  owner: { type: Schema.Types.ObjectId, ref: 'Usuario', required: true },
+  user: { type: Schema.Types.ObjectId, ref: 'Usuario', required: true },
   fechaCreacion: { type: Date, default: Date.now },
   mensajes: [{
     _id: { type: Schema.Types.ObjectId, auto: true }, 
