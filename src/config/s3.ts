@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client } from '@aws-sdk/client-s3';
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION ? process.env.AWS_REGION : '',
@@ -8,17 +8,4 @@ const s3Client = new S3Client({
   },
 });
 
-export const uploadFileToS3 = async (file: Express.Multer.File, filename: string) => {
-	const params = {
-		Bucket: process.env.AWS_BUCKET_NAME,
-		Key: file.originalname,
-		Body: file.buffer,
-	};
-
-	try {
-		return await s3Client.send(new PutObjectCommand(params));
-	} catch (err) {
-		console.log(err)
-		throw Error('No se pudo subir la imagen al repositorio')
-	}
-};
+export default s3Client;

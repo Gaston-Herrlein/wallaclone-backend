@@ -3,10 +3,16 @@ import mongoose from 'mongoose';
 
 import Anuncio, { IAnuncio } from '../models/Anuncio';
 import Usuario, { IUsuario } from '../models/Usuario';
-import { AppError, UnauthorizedError, ForbiddenError, NotFoundError, BadRequestError} from '../utils/errors';
+import {
+  AppError,
+  UnauthorizedError,
+  ForbiddenError,
+  NotFoundError,
+  BadRequestError,
+} from '../utils/errors';
 import { EstadosAnuncio, isOwner } from '../utils/anuncio';
 import { createSlug } from '../utils/slug';
-import { uploadFileToS3 } from '../config/s3';
+import { uploadFileToS3, deleteFile } from '../controllers/s3Controller';
 
 // Definir el tipo de respuesta con la población del autor
 interface AnuncioPopulated extends Omit<IAnuncio, 'autor'> {
@@ -30,7 +36,6 @@ interface LeanAnuncio {
   slug: string;
   estado: string;
 }
-
 
 const getAnuncios = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -91,25 +96,27 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
       .lean<AnuncioPopulated[]>()
       .exec();
 
-    const processedAnuncios = anuncios.map((anuncio) => ({
-      _id: (anuncio._id as mongoose.Types.ObjectId).toString(),
-      nombre: anuncio.nombre,
-      imagen: anuncio.imagen,
-      descripcion: anuncio.descripcion,
-      precio: anuncio.precio,
-      tipoAnuncio: anuncio.tipoAnuncio,
-      tags: anuncio.tags,
-      autor: anuncio.autor
-        ? {
-            _id: (anuncio.autor._id as mongoose.Types.ObjectId).toString(),
-            nombre: anuncio.autor.nombre,
-            email: anuncio.autor.email,
-          }
-        : null,
-      fechaPublicacion: anuncio.fechaPublicacion,
-      slug: anuncio.slug,
-      estado: anuncio.estado,
-    }));
+    const processedAnuncios = anuncios.map((anuncio) => {
+      return {
+        _id: (anuncio._id as mongoose.Types.ObjectId).toString(),
+        nombre: anuncio.nombre,
+        imagen: anuncio.imagen,
+        descripcion: anuncio.descripcion,
+        precio: anuncio.precio,
+        tipoAnuncio: anuncio.tipoAnuncio,
+        tags: anuncio.tags,
+        autor: anuncio.autor
+          ? {
+              _id: (anuncio.autor._id as mongoose.Types.ObjectId).toString(),
+              nombre: anuncio.autor.nombre,
+              email: anuncio.autor.email,
+            }
+          : null,
+        fechaPublicacion: anuncio.fechaPublicacion,
+        slug: anuncio.slug,
+        estado: anuncio.estado,
+      };
+    });
 
     res.status(200).json({
       anuncios: processedAnuncios,
@@ -133,7 +140,6 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
     }
   }
 };
-
 
 const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -205,25 +211,27 @@ const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> =>
       .populate('autor', 'nombre email')
       .lean<LeanAnuncio[]>();
 
-    const processedAnuncios = anuncios.map((anuncio) => ({
-      _id: anuncio._id.toString(),
-      nombre: anuncio.nombre,
-      imagen: anuncio.imagen,
-      descripcion: anuncio.descripcion,
-      precio: anuncio.precio,
-      tipoAnuncio: anuncio.tipoAnuncio,
-      tags: anuncio.tags,
-      autor: anuncio.autor
-        ? {
-            _id: anuncio.autor._id.toString(),
-            nombre: anuncio.autor.nombre,
-            email: anuncio.autor.email,
-          }
-        : null,
-      fechaPublicacion: anuncio.fechaPublicacion,
-      slug: anuncio.slug,
-      estado: anuncio.estado,
-    }));
+    const processedAnuncios = anuncios.map((anuncio) => {
+      return {
+        _id: anuncio._id.toString(),
+        nombre: anuncio.nombre,
+        imagen: anuncio.imagen,
+        descripcion: anuncio.descripcion,
+        precio: anuncio.precio,
+        tipoAnuncio: anuncio.tipoAnuncio,
+        tags: anuncio.tags,
+        autor: anuncio.autor
+          ? {
+              _id: anuncio.autor._id.toString(),
+              nombre: anuncio.autor.nombre,
+              email: anuncio.autor.email,
+            }
+          : null,
+        fechaPublicacion: anuncio.fechaPublicacion,
+        slug: anuncio.slug,
+        estado: anuncio.estado,
+      };
+    });
 
     res.status(200).json({
       anuncios: processedAnuncios,
@@ -248,33 +256,33 @@ const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
-
 const getAnuncio = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug;
-    
-    const anuncio = await Anuncio.findOne({ slug: slug }).populate('autor', 'nombre email').lean<LeanAnuncio>();
+
+    const anuncio = await Anuncio.findOne({ slug: slug })
+      .populate('autor', 'nombre email')
+      .lean<LeanAnuncio>();
 
     res.status(200).json({
-      result: anuncio
+      result: anuncio,
     });
   } catch (error: unknown) {
     console.error('Error al obtener el anuncio:', error);
     if (error instanceof Error) {
-      res.status(500).json({ 
-        message: 'Error en el servidor', 
+      res.status(500).json({
+        message: 'Error en el servidor',
         error: error.message,
-        stack: error.stack 
+        stack: error.stack,
       });
     } else {
-      res.status(500).json({ 
-        message: 'Error en el servidor', 
-        error: 'An unknown error occurred' 
+      res.status(500).json({
+        message: 'Error en el servidor',
+        error: 'An unknown error occurred',
       });
     }
   }
 };
-
 
 const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
   const { anuncioId } = req.params;
@@ -287,7 +295,9 @@ const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
 
     const userIsOwner = await isOwner(anuncioId, userId);
     if (userIsOwner) {
-      await Anuncio.deleteOne({ _id: anuncioId });
+      const anuncio = await Anuncio.findOneAndDelete({ _id: anuncioId });
+      const key = anuncio?.imagen ? anuncio?.imagen : '';
+      deleteFile(key);
     }
     res.status(200).send('Anuncio eliminado correctamente');
   } catch (error: unknown) {
@@ -307,12 +317,11 @@ const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-
 const createAnuncio = async (req: Request, res: Response): Promise<void> => {
   try {
     const { nombre, descripcion, tipoAnuncio, precio, tags } = req.body;
     const imagen = req.file ? req.file : null;
-    
+
     if (!req.userId) {
       res.status(401).json({ message: 'Usuario no autenticado' });
       return;
@@ -324,7 +333,7 @@ const createAnuncio = async (req: Request, res: Response): Promise<void> => {
 
     const slug = await createSlug(nombre);
     const filename = `${Date.now()}-${imagen.originalname}`;
-    
+
     try {
       await uploadFileToS3(imagen, filename);
     } catch (error) {
@@ -337,26 +346,26 @@ const createAnuncio = async (req: Request, res: Response): Promise<void> => {
       descripcion,
       tipoAnuncio,
       precio,
-      tags: tags || [], 
-      autor: req.userId, 
-      slug
+      tags: tags || [],
+      autor: req.userId,
+      slug,
     });
 
     await nuevoAnuncio.save();
 
     res.status(201).json({
       message: 'Anuncio creado exitosamente',
-      anuncio: nuevoAnuncio
+      anuncio: nuevoAnuncio,
     });
   } catch (error) {
     if (error instanceof Error) {
       res.status(error instanceof BadRequestError ? 400 : 500).json({
         message: 'Error al crear el anuncio',
-        error: error.message
+        error: error.message,
       });
     } else {
       res.status(500).json({
-        message: 'Error desconocido al crear el anuncio'
+        message: 'Error desconocido al crear el anuncio',
       });
     }
   }
@@ -395,8 +404,10 @@ const editAnuncio = async (req: Request, res: Response): Promise<void> => {
       tags: tags || anuncioExistente.tags,
     };
 
+    let oldKey = '';
     if (imagen) {
       datosActualizados.imagen = imagen;
+      oldKey = anuncioExistente?.imagen ? anuncioExistente?.imagen : '';
     }
 
     // Actualizar el slug solo si el nombre ha cambiado
@@ -404,19 +415,23 @@ const editAnuncio = async (req: Request, res: Response): Promise<void> => {
       datosActualizados.slug = await createSlug(nombre);
     }
 
-    const anuncioActualizado = await Anuncio.findByIdAndUpdate(
-      id,
-      datosActualizados,
-      { new: true, runValidators: true }
-    );
+    const anuncioActualizado = await Anuncio.findByIdAndUpdate(id, datosActualizados, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!anuncioActualizado) {
       throw new NotFoundError('Anuncio no encontrado después de la actualización');
     }
 
+    if (oldKey !== '' && imagen && req.file) {
+      deleteFile(oldKey);
+      uploadFileToS3(req.file, imagen);
+    }
+
     res.status(200).json({
       message: 'Anuncio actualizado exitosamente',
-      anuncio: anuncioActualizado
+      anuncio: anuncioActualizado,
     });
   } catch (error) {
     console.error('Error al actualizar el anuncio:', error);
@@ -426,18 +441,17 @@ const editAnuncio = async (req: Request, res: Response): Promise<void> => {
     } else {
       res.status(500).json({
         message: 'Error en el servidor',
-        error: error instanceof Error ? error.message : 'Error desconocido'
+        error: error instanceof Error ? error.message : 'Error desconocido',
       });
     }
   }
 };
 
-
 const changeStatusAnuncio = async (req: Request, res: Response): Promise<void> => {
   const { anuncioId } = req.params;
   const { estado } = req.body;
   const userId = req.userId;
-  
+
   try {
     if (!userId) {
       throw new ForbiddenError();
@@ -449,25 +463,29 @@ const changeStatusAnuncio = async (req: Request, res: Response): Promise<void> =
     }
 
     if (!Object.values(EstadosAnuncio).includes(estado)) {
-      throw new BadRequestError('El estado enviado no existe entre los posibles estados del anuncio');
+      throw new BadRequestError(
+        'El estado enviado no existe entre los posibles estados del anuncio',
+      );
     }
 
     const anuncio = await Anuncio.findOne({ _id: anuncioId });
     if (!anuncio) {
       throw new BadRequestError('No existe un anuncio con ese id');
     }
-    
+
     if (anuncio.estado === EstadosAnuncio.VENDIDO) {
-      throw new BadRequestError('El anuncio se encuentra en estado vendido, por lo que no puede volver a estar disponible');
+      throw new BadRequestError(
+        'El anuncio se encuentra en estado vendido, por lo que no puede volver a estar disponible',
+      );
     }
 
     if (estado === anuncio.estado) {
       throw new BadRequestError('El estado enviado es igual al estado actual');
     }
-    
+
     anuncio.estado = estado;
     anuncio.save();
-    
+
     res.status(200).send({ result: 'Estado del anuncio actualizado correctamente' });
   } catch (error: any) {
     if (error.status) {
@@ -484,15 +502,13 @@ const changeStatusAnuncio = async (req: Request, res: Response): Promise<void> =
   }
 };
 
-
 const getStatusAnuncio = async (req: Request, res: Response): Promise<void> => {
   try {
     const estados = Object.values(EstadosAnuncio);
 
     res.status(200).json({
-      result: estados
+      result: estados,
     });
-
   } catch (error: any) {
     if (error.status) {
       res.status(error.status).json({
@@ -508,4 +524,14 @@ const getStatusAnuncio = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export { LeanAnuncio, getAnuncios, getAnunciosUsuario, getAnuncio, deleteAnuncio, createAnuncio, editAnuncio, changeStatusAnuncio, getStatusAnuncio };
+export {
+  LeanAnuncio,
+  getAnuncios,
+  getAnunciosUsuario,
+  getAnuncio,
+  deleteAnuncio,
+  createAnuncio,
+  editAnuncio,
+  changeStatusAnuncio,
+  getStatusAnuncio,
+};
