@@ -2,9 +2,12 @@ import http from 'node:http';
 import { Server } from 'socket.io';
 import app from './app';
 import { connectDB } from './config/database';
+import jwt from 'jsonwebtoken';
+import { UnauthorizedError } from './utils/errors';
 
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/wallaclone';
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 const startServer = async () => {
   await connectDB(MONGODB_URI);
@@ -16,6 +19,22 @@ const startServer = async () => {
       methods: ['GET', 'POST'],
       allowedHeaders: ['Content-Type', 'Authorization'],
       credentials: true,
+    }
+  });
+
+  io.use((socket, next) => {
+    try {
+      const accessJWT = socket.handshake.auth.token as string;
+      if (!accessJWT) {
+        console.log(`Error: no token`);
+        throw new UnauthorizedError('Token error');
+      }
+      const userId = jwt.verify(accessJWT, JWT_SECRET);
+      socket.data.userId = userId;
+      next();
+    } catch (err) {
+      console.log(`Error: ${err}`);
+      next(new Error('Authentication error'));
     }
   });
 
