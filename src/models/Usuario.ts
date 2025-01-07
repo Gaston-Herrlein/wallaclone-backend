@@ -1,56 +1,58 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { comparePasswords, hashPassword } from '../utils/password';
 
-export interface IUsuario extends Document {
-  nombre: string;
+export interface IUser extends Document {
+  name: string;
   email: string;
-  contraseña: string;
-  fechaRegistro: Date;
+  password: string;
+  logDate: Date;
   avatar?: string;
-  anunciosFavoritos: Array<{
-    anuncio: mongoose.Schema.Types.ObjectId;
-    fechaAgregado: Date;
+  favAdverts: Array<{
+    advert: mongoose.Schema.Types.ObjectId;
+    dateAdd: Date;
   }>;
-  compararContraseña(contraseñaCandidata: string): Promise<boolean>;
+  comparePassword(password: string): Promise<boolean>;
 }
 
-const UsuarioSchema: Schema = new Schema({
-  nombre: { 
-    type: String, 
+const UserSchema: Schema = new Schema({
+  name: {
+    type: String,
     required: true,
-    match: /^[a-zA-Z0-9_-]+$/
+    match: /^[a-zA-Z0-9_-]+$/,
   },
-  email: { 
-    type: String, 
-    required: true, 
+  email: {
+    type: String,
+    required: true,
     unique: true,
     lowercase: true,
-    trim: true
+    trim: true,
   },
-  contraseña: { 
-    type: String, 
+  password: {
+    type: String,
     required: true,
-    minlength: 6
+    minlength: 6,
   },
-  fechaRegistro: { type: Date, default: Date.now },
+  logDate: { type: Date, default: Date.now },
   avatar: String,
-  anunciosFavoritos: [{
-    anuncio: { type: Schema.Types.ObjectId, ref: 'Anuncio' },
-    fechaAgregado: { type: Date, default: Date.now }
-  }]
+  anunciosFavoritos: [
+    {
+      advert: { type: Schema.Types.ObjectId, ref: 'Anuncio' },
+      dateAdd: { type: Date, default: Date.now },
+    },
+  ],
 });
 
 // Método para hashear la contraseña antes de guardar
-UsuarioSchema.pre<IUsuario>('save', async function(next) {
-  if (!this.isModified('contraseña')) return next();
-  this.contraseña = await hashPassword(this.contraseña);
+UserSchema.pre<IUser>('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  this.password = await hashPassword(this.password);
   next();
 });
 
 // Método para comparar contraseñas
-UsuarioSchema.methods.compararContraseña = async function(contraseñaCandidata: string): Promise<boolean> {
-  return await comparePasswords(contraseñaCandidata, this.contraseña);
+UserSchema.methods.comparePassword = async function (password: string): Promise<boolean> {
+  return await comparePasswords(password, this.password);
 };
 
-const Usuario = mongoose.model<IUsuario>('Usuario', UsuarioSchema);
-export default Usuario;
+const User = mongoose.model<IUser>('User', UserSchema);
+export default User;

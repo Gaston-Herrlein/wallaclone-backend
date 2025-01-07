@@ -1,8 +1,7 @@
-
 import request from 'supertest';
 import mongoose from 'mongoose';
-import app from '../app'; 
-import Usuario from '../models/Usuario';
+import app from '../app';
+import User from '../models/Usuario';
 import Anuncio from '../models/Anuncio';
 import jwt from 'jsonwebtoken';
 
@@ -14,7 +13,9 @@ describe('Delete User Account', () => {
 
   beforeAll(async () => {
     // Conectar a la base de datos de prueba
-    await mongoose.connect(process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/wallaclone_test');
+    await mongoose.connect(
+      process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/wallaclone_test',
+    );
   });
 
   afterAll(async () => {
@@ -24,22 +25,22 @@ describe('Delete User Account', () => {
 
   beforeEach(async () => {
     // Crear un usuario de prueba
-    testUser = await Usuario.create({
-      nombre: 'TestUser',
+    testUser = await User.create({
+      name: 'TestUser',
       email: 'test@example.com',
-      contraseña: 'password123'
+      password: 'password123',
     });
 
     // Crear un anuncio de prueba asociado al usuario
     await Anuncio.create({
-      nombre: 'Test Anuncio',
-      imagen: 'test.jpg',
-      descripcion: 'Test description',
-      precio: 100,
-      tipoAnuncio: 'venta',
+      name: 'Test Anuncio',
+      image: 'test.jpg',
+      description: 'Test description',
+      price: 100,
+      typeAdvert: 'venta',
       tags: ['test'],
-      autor: testUser._id,
-      slug: 'test-anuncio'
+      author: testUser._id,
+      slug: 'test-anuncio',
     });
 
     // Generar token JWT para el usuario de prueba
@@ -48,7 +49,7 @@ describe('Delete User Account', () => {
 
   afterEach(async () => {
     // Limpiar la base de datos después de cada prueba
-    await Usuario.deleteMany({});
+    await User.deleteMany({});
     await Anuncio.deleteMany({});
   });
 
@@ -61,11 +62,11 @@ describe('Delete User Account', () => {
     expect(response.body.message).toBe('Cuenta de usuario eliminada con éxito');
 
     // Verificar que el usuario ya no existe en la base de datos
-    const deletedUser = await Usuario.findById(testUser._id);
+    const deletedUser = await User.findById(testUser._id);
     expect(deletedUser).toBeNull();
 
     // Verificar que los anuncios asociados al usuario han sido eliminados
-    const userAnuncios = await Anuncio.find({ autor: testUser._id });
+    const userAnuncios = await Anuncio.find({ author: testUser._id });
     expect(userAnuncios.length).toBe(0);
   });
 
@@ -80,8 +81,7 @@ describe('Delete User Account', () => {
   });
 
   it('should return 401 if no token provided', async () => {
-    const response = await request(app)
-      .delete(`/api/users/${testUser._id}`);
+    const response = await request(app).delete(`/api/users/${testUser._id}`);
 
     expect(response.status).toBe(401);
     expect(response.body.message).toBe('No token provided');

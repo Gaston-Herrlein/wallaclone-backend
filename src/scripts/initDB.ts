@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import Anuncio from '../models/Anuncio';
-import Usuario from '../models/Usuario';  
+import User from '../models/Usuario';
 import { connectDB } from '../config/database';
 import fs from 'fs';
 import path from 'path';
@@ -12,7 +12,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 });
 
 const initDB = async () => {
@@ -20,23 +20,26 @@ const initDB = async () => {
     const mongoUri = process.env.MONGODB_URI ?? 'mongodb://localhost:27017/wallaclone';
     await connectDB(mongoUri);
 
-    rl.question('¿Estás seguro de que deseas eliminar todos los datos y cargarlos nuevamente? (s/n): ', async (answer) => {
-      if (answer.toLowerCase() === 's') {
-        // Eliminar todos los anuncios y usuarios existentes
-        await Anuncio.deleteMany({});
-        await Usuario.deleteMany({});
-        console.log('Datos eliminados.');
-        console.log('Base de datos inicializada con éxito');
-        mongoose.disconnect(); // Cerrar la conexión
-        rl.close();
-        process.exit(0);
-      } else {
-        console.log('Operación cancelada.');
-        mongoose.disconnect(); // Cerrar la conexión
-        rl.close();
-        process.exit(0);
-      }
-    });
+    rl.question(
+      '¿Estás seguro de que deseas eliminar todos los datos y cargarlos nuevamente? (s/n): ',
+      async (answer) => {
+        if (answer.toLowerCase() === 's') {
+          // Eliminar todos los anuncios y usuarios existentes
+          await Anuncio.deleteMany({});
+          await User.deleteMany({});
+          console.log('Datos eliminados.');
+          console.log('Base de datos inicializada con éxito');
+          mongoose.disconnect(); // Cerrar la conexión
+          rl.close();
+          process.exit(0);
+        } else {
+          console.log('Operación cancelada.');
+          mongoose.disconnect(); // Cerrar la conexión
+          rl.close();
+          process.exit(0);
+        }
+      },
+    );
   } catch (error) {
     console.error('Error al inicializar la base de datos:', error);
     mongoose.disconnect(); // Cerrar la conexión en caso de error
