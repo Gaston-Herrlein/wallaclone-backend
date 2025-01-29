@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 
-import Anuncio, { IAnuncio } from '../models/Anuncio';
-import Usuario, { IUsuario } from '../models/Usuario';
+import Advert, { IAdvert } from '../models/Anuncio';
+import User, { IUser } from '../models/Usuario';
 import {
   AppError,
   UnauthorizedError,
@@ -15,114 +15,114 @@ import { createSlug } from '../utils/slug';
 import { uploadFileToS3, deleteFile } from '../controllers/s3Controller';
 
 // Definir el tipo de respuesta con la población del autor
-interface AnuncioPopulated extends Omit<IAnuncio, 'autor'> {
-  autor: IUsuario | null;
+interface AdvertPopulated extends Omit<IAdvert, 'author'> {
+  author: IUser | null;
 }
 
 interface LeanAnuncio {
   _id: mongoose.Types.ObjectId;
-  nombre: string;
-  imagen: string;
-  descripcion: string;
-  precio: number;
-  tipoAnuncio: 'venta' | 'búsqueda';
+  name: string;
+  image: string;
+  description: string;
+  price: number;
+  advertType: 'venta' | 'búsqueda';
   tags: string[];
-  autor: {
+  author: {
     _id: mongoose.Types.ObjectId;
-    nombre: string;
+    name: string;
     email: string;
   };
-  fechaPublicacion: Date;
+  publicationDate: Date;
   slug: string;
-  estado: string;
+  state: string;
 }
 
-const getAnuncios = async (req: Request, res: Response): Promise<void> => {
+const getAdverts = async (req: Request, res: Response): Promise<void> => {
   try {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 12;
-    const nombre = (req.query.nombre as string) || '';
+    const name = (req.query.nombre as string) || '';
     const tag = (req.query.tag as string) || '';
-    const minPrecio = req.query.minPrecio;
-    const maxPrecio = req.query.maxPrecio;
-    const precioMin = minPrecio ? parseFloat(minPrecio as string) : undefined;
-    const precioMax = maxPrecio ? parseFloat(maxPrecio as string) : undefined;
-    const tipoAnuncio = req.query.tipoAnuncio as 'venta' | 'búsqueda' | undefined;
+    const minPrice = req.query.minPrecio;
+    const maxPrice = req.query.maxPrecio;
+    const priceMin = minPrice ? parseFloat(minPrice as string) : undefined;
+    const priceMax = maxPrice ? parseFloat(maxPrice as string) : undefined;
+    const typeAdvert = req.query.tipoAnuncio as 'venta' | 'búsqueda' | undefined;
     const sort = (req.query.sort as string) || 'desc';
 
     const searchCriteria: any = {};
 
     // Búsqueda por texto en nombre y descripción
-    if (nombre) {
+    if (name) {
       searchCriteria.$or = [
-        { nombre: { $regex: nombre, $options: 'i' } },
-        { descripcion: { $regex: nombre, $options: 'i' } },
+        { name: { $regex: name, $options: 'i' } },
+        { description: { $regex: name, $options: 'i' } },
       ];
     }
 
     // Filtro por tag
     if (tag) {
-      const tagsArray = tag.split(',').map(t => t.trim()); 
+      const tagsArray = tag.split(',').map((t) => t.trim());
       searchCriteria.tags = { $in: tagsArray };
     }
 
     // Filtro por rango de precio
-    if (precioMin !== undefined || precioMax !== undefined) {
-      searchCriteria.precio = {};
-      if (precioMin !== undefined) {
-        searchCriteria.precio.$gte = precioMin;
+    if (priceMin !== undefined || priceMax !== undefined) {
+      searchCriteria.price = {};
+      if (priceMin !== undefined) {
+        searchCriteria.price.$gte = priceMin;
       }
-      if (precioMax !== undefined) {
-        searchCriteria.precio.$lte = precioMax;
+      if (priceMax !== undefined) {
+        searchCriteria.price.$lte = priceMax;
       }
     }
 
     // Filtro por tipo de anuncio
-    if (tipoAnuncio) {
-      searchCriteria.tipoAnuncio = tipoAnuncio;
+    if (typeAdvert) {
+      searchCriteria.typeAdvert = typeAdvert;
     }
 
     // Filtro por estado
-    searchCriteria.estado = { $ne: 'vendido'};
+    searchCriteria.state = { $ne: 'vendido' };
 
-    const totalAnuncios = await Anuncio.countDocuments(searchCriteria);
+    const totalAdverts = await Advert.countDocuments(searchCriteria);
 
     const sortOrder = sort === 'asc' ? 1 : -1;
-    const anuncios = await Anuncio.find(searchCriteria)
+    const adverts = await Advert.find(searchCriteria)
       .sort({ fechaPublicacion: sortOrder })
       .skip((page - 1) * limit)
       .limit(limit)
-      .populate('autor', 'nombre email')
-      .lean<AnuncioPopulated[]>()
+      .populate('author', 'name email')
+      .lean<AdvertPopulated[]>()
       .exec();
 
-    const processedAnuncios = anuncios.map((anuncio) => {
+    const processedAdverts = adverts.map((advert) => {
       return {
-        _id: (anuncio._id as mongoose.Types.ObjectId).toString(),
-        nombre: anuncio.nombre,
-        imagen: anuncio.imagen,
-        descripcion: anuncio.descripcion,
-        precio: anuncio.precio,
-        tipoAnuncio: anuncio.tipoAnuncio,
-        tags: anuncio.tags,
-        autor: anuncio.autor
+        _id: (advert._id as mongoose.Types.ObjectId).toString(),
+        name: advert.name,
+        imagen: advert.image,
+        description: advert.description,
+        price: advert.price,
+        typeAdvert: advert.typeAdvert,
+        tags: advert.tags,
+        author: advert.author
           ? {
-              _id: (anuncio.autor._id as mongoose.Types.ObjectId).toString(),
-              nombre: anuncio.autor.nombre,
-              email: anuncio.autor.email,
+              _id: (advert.author._id as mongoose.Types.ObjectId).toString(),
+              name: advert.author.name,
+              email: advert.author.email,
             }
           : null,
-        fechaPublicacion: anuncio.fechaPublicacion,
-        slug: anuncio.slug,
-        estado: anuncio.estado,
+        publicationDate: advert.publicationDate,
+        slug: advert.slug,
+        state: advert.state,
       };
     });
 
     res.status(200).json({
-      anuncios: processedAnuncios,
-      total: totalAnuncios,
+      adverts: processedAdverts,
+      total: totalAdverts,
       page,
-      totalPages: Math.ceil(totalAnuncios / limit),
+      totalPages: Math.ceil(totalAdverts / limit),
     });
   } catch (error: unknown) {
     console.error('Error al obtener los anuncios:', error);
@@ -155,7 +155,7 @@ const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> =>
     const tipoAnuncio = req.query.tipoAnuncio as 'venta' | 'búsqueda' | undefined;
     const sort = (req.query.sort as string) || 'desc';
 
-    const usuario = await Usuario.findOne({ nombre: nombreUsuario });
+    const usuario = await User.findOne({ name: nombreUsuario });
     if (!usuario) {
       res.status(404).json({ message: 'Usuario no encontrado' });
       return;
@@ -200,11 +200,11 @@ const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> =>
 
     console.log('Search criteria:', JSON.stringify(searchCriteria, null, 2));
 
-    const totalAnuncios = await Anuncio.countDocuments(searchCriteria);
+    const totalAnuncios = await Advert.countDocuments(searchCriteria);
 
     const sortOrder = sort === 'asc' ? 1 : -1;
 
-    const anuncios = await Anuncio.find(searchCriteria)
+    const anuncios = await Advert.find(searchCriteria)
       .sort({ fechaPublicacion: sortOrder })
       .skip((page - 1) * limit)
       .limit(limit)
@@ -214,22 +214,22 @@ const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> =>
     const processedAnuncios = anuncios.map((anuncio) => {
       return {
         _id: anuncio._id.toString(),
-        nombre: anuncio.nombre,
-        imagen: anuncio.imagen,
-        descripcion: anuncio.descripcion,
-        precio: anuncio.precio,
-        tipoAnuncio: anuncio.tipoAnuncio,
+        nombre: anuncio.name,
+        imagen: anuncio.image,
+        descripcion: anuncio.description,
+        precio: anuncio.price,
+        tipoAnuncio: anuncio.advertType,
         tags: anuncio.tags,
-        autor: anuncio.autor
+        autor: anuncio.author
           ? {
-              _id: anuncio.autor._id.toString(),
-              nombre: anuncio.autor.nombre,
-              email: anuncio.autor.email,
+              _id: anuncio.author._id.toString(),
+              nombre: anuncio.author.name,
+              email: anuncio.author.email,
             }
           : null,
-        fechaPublicacion: anuncio.fechaPublicacion,
+        fechaPublicacion: anuncio.publicationDate,
         slug: anuncio.slug,
-        estado: anuncio.estado,
+        estado: anuncio.state,
       };
     });
 
@@ -260,7 +260,7 @@ const getAnuncio = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug;
 
-    const anuncio = await Anuncio.findOne({ slug: slug })
+    const anuncio = await Advert.findOne({ slug: slug })
       .populate('autor', 'nombre email')
       .lean<LeanAnuncio>();
 
@@ -295,8 +295,8 @@ const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
 
     const userIsOwner = await isOwner(anuncioId, userId);
     if (userIsOwner) {
-      const anuncio = await Anuncio.findOneAndDelete({ _id: anuncioId });
-      const key = anuncio?.imagen ? anuncio?.imagen : '';
+      const anuncio = await Advert.findOneAndDelete({ _id: anuncioId });
+      const key = anuncio?.image ? anuncio?.image : '';
       deleteFile(key);
     }
     res.status(200).send('Anuncio eliminado correctamente');
@@ -340,7 +340,7 @@ const createAnuncio = async (req: Request, res: Response): Promise<void> => {
       console.log(error);
     }
 
-    const nuevoAnuncio: IAnuncio = new Anuncio({
+    const nuevoAnuncio: IAdvert = new Advert({
       nombre,
       imagen: filename,
       descripcion,
@@ -391,31 +391,31 @@ const editAnuncio = async (req: Request, res: Response): Promise<void> => {
       throw new ForbiddenError('No tienes permiso para editar este anuncio');
     }
 
-    const anuncioExistente = await Anuncio.findById(id);
+    const anuncioExistente = await Advert.findById(id);
     if (!anuncioExistente) {
       throw new NotFoundError('Anuncio no encontrado');
     }
 
-    const datosActualizados: Partial<IAnuncio> = {
-      nombre: nombre || anuncioExistente.nombre,
-      descripcion: descripcion || anuncioExistente.descripcion,
-      tipoAnuncio: tipoAnuncio || anuncioExistente.tipoAnuncio,
-      precio: precio !== undefined ? precio : anuncioExistente.precio,
+    const datosActualizados: Partial<IAdvert> = {
+      name: nombre || anuncioExistente.name,
+      description: descripcion || anuncioExistente.description,
+      typeAdvert: tipoAnuncio || anuncioExistente.typeAdvert,
+      price: precio !== undefined ? precio : anuncioExistente.price,
       tags: tags || anuncioExistente.tags,
     };
 
     let oldKey = '';
     if (imagen) {
-      datosActualizados.imagen = imagen;
-      oldKey = anuncioExistente?.imagen ? anuncioExistente?.imagen : '';
+      datosActualizados.image = imagen;
+      oldKey = anuncioExistente?.image ? anuncioExistente?.image : '';
     }
 
     // Actualizar el slug solo si el nombre ha cambiado
-    if (nombre && nombre !== anuncioExistente.nombre) {
+    if (nombre && nombre !== anuncioExistente.name) {
       datosActualizados.slug = await createSlug(nombre);
     }
 
-    const anuncioActualizado = await Anuncio.findByIdAndUpdate(id, datosActualizados, {
+    const anuncioActualizado = await Advert.findByIdAndUpdate(id, datosActualizados, {
       new: true,
       runValidators: true,
     });
@@ -468,22 +468,22 @@ const changeStatusAnuncio = async (req: Request, res: Response): Promise<void> =
       );
     }
 
-    const anuncio = await Anuncio.findOne({ _id: anuncioId });
+    const anuncio = await Advert.findOne({ _id: anuncioId });
     if (!anuncio) {
       throw new BadRequestError('No existe un anuncio con ese id');
     }
 
-    if (anuncio.estado === EstadosAnuncio.VENDIDO) {
+    if (anuncio.state === EstadosAnuncio.VENDIDO) {
       throw new BadRequestError(
         'El anuncio se encuentra en estado vendido, por lo que no puede volver a estar disponible',
       );
     }
 
-    if (estado === anuncio.estado) {
+    if (estado === anuncio.state) {
       throw new BadRequestError('El estado enviado es igual al estado actual');
     }
 
-    anuncio.estado = estado;
+    anuncio.state = estado;
     anuncio.save();
 
     res.status(200).send({ result: 'Estado del anuncio actualizado correctamente' });
@@ -526,7 +526,7 @@ const getStatusAnuncio = async (req: Request, res: Response): Promise<void> => {
 
 export {
   LeanAnuncio,
-  getAnuncios,
+  getAdverts as getAnuncios,
   getAnunciosUsuario,
   getAnuncio,
   deleteAnuncio,

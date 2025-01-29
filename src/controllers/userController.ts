@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import Usuario from '../models/Usuario';
+import User from '../models/Usuario';
 import Anuncio from '../models/Anuncio';
 import jwt from 'jsonwebtoken';
 import { sendEmail } from '../config/email';
@@ -21,7 +21,7 @@ export const recoveryPass = async (
   try {
     const { email } = req.body;
 
-    const usuarioExistente = await Usuario.findOne({ $or: [{ email }] });
+    const usuarioExistente = await User.findOne({ $or: [{ email }] });
     if (usuarioExistente) {
       const token = jwt.sign({ email: email }, JWT_SECRET, {
         mutatePayload: true,
@@ -55,12 +55,12 @@ export const resetPass = async (req: Request, res: Response, next: NextFunction)
     }
 
     const decoded = jwt.verify(token as any, JWT_SECRET);
-    const user = await Usuario.findOne({ email: (decoded as any).email });
+    const user = await User.findOne({ email: (decoded as any).email });
     if (!user) {
       throw new NotFoundError('No existe el usuario');
     }
 
-    user.contraseña = newPassword;
+    user.password = newPassword;
     user.save();
 
     res.status(200).send({ message: 'Contraseña restablecida exitosamente' });
@@ -81,18 +81,18 @@ export const updatePass = async (
     if (isValidPassword(newPass)) {
       throw new BadRequestError('La contraseña debe tener al menos 6 caracteres');
     }
-    const user = await Usuario.findOne({ _id: userId });
+    const user = await User.findOne({ _id: userId });
 
     if (!user) {
       throw new NotFoundError('Usuario no encontrado');
     }
 
-    const passwordsMatch = await user.compararContraseña(oldPass);
+    const passwordsMatch = await user.comparePassword(oldPass);
     if (!passwordsMatch) {
       throw new BadRequestError('La contraseña actual no es correcta');
     }
 
-    user.contraseña = newPass;
+    user.password = newPass;
     user.save();
 
     res.status(200).send({ message: 'El cambio de contraseña se realizó exitosamente' });
@@ -110,16 +110,16 @@ export const deleteAccount = async (
     const userId = req.params.id;
 
     // Verificar si el usuario existe
-    const user = await Usuario.findById(userId);
+    const user = await User.findById(userId);
     if (!user) {
       throw new NotFoundError('Usuario no encontrado');
     }
 
     // Eliminar anuncios asociados al usuario
-    await Anuncio.deleteMany({ autor: userId });
+    await Anuncio.deleteMany({ author: userId });
 
     // Eliminar el usuario
-    await Usuario.findByIdAndDelete(userId);
+    await User.findByIdAndDelete(userId);
 
     res.status(200).json({ message: 'Cuenta de usuario eliminada con éxito' });
   } catch (error) {
@@ -141,23 +141,25 @@ export const updateUserProfile = async (
 
     const isUndefined: string[] = checkUndefined({ name, email });
     isUndefined.length === 2
-      ? () => { throw new BadRequestError('Email y nombre de usuario inválidos') }
+      ? () => {
+          throw new BadRequestError('Email y nombre de usuario inválidos');
+        }
       : undefined;
-    
+
     //Comprobamos que el usuario exista
-    const user = await Usuario.findOne({ _id: userId });
+    const user = await User.findOne({ _id: userId });
     if (!user) {
       throw new NotFoundError('Usuario no encontrado');
     }
 
     //Chequeo qué campos se han modificado para hacer las validaciones solo sobre los campos modificados
-    if (user.nombre === name)
-      isNewName = false;
-    if (user.email === email)
-      isNewEmail = false;
+    if (user.name === name) isNewName = false;
+    if (user.email === email) isNewEmail = false;
 
     if (!isNewName && !isNewEmail) {
-      throw new BadRequestError('Para cambiar el nombre de usuario y el email, se deben enviar nuevos valores');
+      throw new BadRequestError(
+        'Para cambiar el nombre de usuario y el email, se deben enviar nuevos valores',
+      );
     }
 
     //Valido el nuevo username y si es válido lo guardo
@@ -166,17 +168,17 @@ export const updateUserProfile = async (
         throw new BadRequestError('Nombre de usuario inválido');
       }
 
-      const userExists = await Usuario.findOne({ nombre: name });
+      const userExists = await User.findOne({ name: name });
       if (userExists) {
         throw new ConflictError('El nombre de usuario ya está en uso');
       }
 
-      user.nombre = name;
+      user.name = name;
     }
 
     //Valido el nuevo email y si es válido lo guardo
     if (isNewEmail && !isUndefined.includes('email')) {
-      const userExists = await Usuario.findOne({ email });
+      const userExists = await User.findOne({ email });
       if (userExists) {
         throw new ConflictError('El email ya está en uso');
       }
@@ -191,7 +193,7 @@ export const updateUserProfile = async (
       };
       sendEmail(emailOptions);
     }
-    
+
     user.save();
     res.status(200).send('Datos actualizados correctamente');
   } catch (error) {

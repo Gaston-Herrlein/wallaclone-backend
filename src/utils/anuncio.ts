@@ -10,7 +10,7 @@ export const isOwner = async (anuncioId: string, userId: string) => {
     if (!anuncio) {
       throw new Error('Anuncio no encontrado');
     }
-    return anuncio.autor._id.toString() === userId;
+    return anuncio.author._id.toString() === userId;
   } catch (error) {
     console.error('Error verificando propietario del anuncio:', error);
     throw error;
@@ -18,7 +18,7 @@ export const isOwner = async (anuncioId: string, userId: string) => {
 };
 
 export enum EstadosAnuncio {
-  DISPONIBLE = "disponible",
-  RESERVADO = "reservado",
-  VENDIDO = "vendido",
-};
+  DISPONIBLE = 'disponible',
+  RESERVADO = 'reservado',
+  VENDIDO = 'vendido',
+}

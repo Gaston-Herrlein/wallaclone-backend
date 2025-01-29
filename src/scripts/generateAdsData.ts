@@ -1,7 +1,7 @@
 import path from 'path';
 import { Types } from 'mongoose';
 import mongoose from 'mongoose';
-import Usuario from '../models/Usuario';
+import User from '../models/Usuario';
 import Anuncio from '../models/Anuncio';
 import { connectDB } from '../config/database';
 import dotenv from 'dotenv';
@@ -36,22 +36,150 @@ const usuariosData = [
 ];
 
 const anunciosData: Partial<Anuncio>[] = [
-  { nombre: 'Impresora 3D', imagen: '3d-printer.jpg', descripcion: 'Impresora 3D de alta precisión', precio: 1000, tipoAnuncio: 'venta', tags: ['tech', '3d'], fechaPublicacion: new Date('2024-07-01') },
-  { nombre: 'Monitor 4K', imagen: '4k-monitor.jpg', descripcion: 'Monitor 4K UHD de 27 pulgadas', precio: 400, tipoAnuncio: 'venta', tags: ['tech', 'monitor'], fechaPublicacion: new Date('2024-07-02') },
-  { nombre: 'Altavoces Bluetooth', imagen: 'bluetooth-speakers.jpg', descripcion: 'Altavoces portátiles Bluetooth con gran calidad de sonido', precio: 150, tipoAnuncio: 'venta', tags: ['tech', 'audio'], fechaPublicacion: new Date('2024-07-03') },
-  { nombre: 'Drone', imagen: 'drone.jpg', descripcion: 'Drone con cámara 4K y estabilizador', precio: 800, tipoAnuncio: 'venta', tags: ['tech', 'drone'], fechaPublicacion: new Date('2024-07-04') },
-  { nombre: 'Cámara DSLR', imagen: 'dslr-camera.jpg', descripcion: 'Cámara DSLR profesional, ideal para fotografía de paisajes.', precio: 600, tipoAnuncio: 'venta', tags: ['tech', 'photo'], fechaPublicacion: new Date('2024-07-05') },
-  { nombre: 'iPhone 12', imagen: 'iphone12.jpg', descripcion: 'iPhone 12 en excelente estado, poco uso.', precio: 500, tipoAnuncio: 'venta', tags: ['mobile', 'tech'], fechaPublicacion: new Date('2024-07-06') },
-  { nombre: 'MacBook Pro', imagen: 'macbook-pro.jpg', descripcion: 'MacBook Pro 2021, 16GB RAM, 512GB SSD.', precio: 1200, tipoAnuncio: 'venta', tags: ['tech', 'work'], fechaPublicacion: new Date('2024-07-07') },
-  { nombre: 'Teclado Mecánico', imagen: 'mechanical-keyboard.jpg', descripcion: 'Teclado mecánico retroiluminado', precio: 100, tipoAnuncio: 'venta', tags: ['tech', 'keyboard'], fechaPublicacion: new Date('2024-07-08') },
-  { nombre: 'Bicicleta de Montaña', imagen: 'mountain-bike.jpg', descripcion: 'Bicicleta de montaña casi nueva, ideal para principiantes.', precio: 300, tipoAnuncio: 'venta', tags: ['lifestyle', 'sports'], fechaPublicacion: new Date('2024-07-09') },
-  { nombre: 'Nintendo Switch', imagen: 'nintendo-switch.jpg', descripcion: 'Consola Nintendo Switch con juegos incluidos', precio: 350, tipoAnuncio: 'venta', tags: ['gaming', 'tech'], fechaPublicacion: new Date('2024-07-10') },
-  { nombre: 'Silla de Oficina', imagen: 'office-chair.jpg', descripcion: 'Silla ergonómica de oficina', precio: 200, tipoAnuncio: 'venta', tags: ['furniture', 'office'], fechaPublicacion: new Date('2024-07-11') },
-  { nombre: 'PlayStation 5', imagen: 'ps5.jpg', descripcion: 'PS5 nueva, en caja sellada.', precio: 450, tipoAnuncio: 'venta', tags: ['tech', 'gaming'], fechaPublicacion: new Date('2024-07-12') },
-  { nombre: 'Robot Aspiradora', imagen: 'robot-vacuum.jpg', descripcion: 'Robot aspiradora con programación automática', precio: 250, tipoAnuncio: 'venta', tags: ['home', 'tech'], fechaPublicacion: new Date('2024-07-13') },
-  { nombre: 'Smartwatch', imagen: 'smartwatch.jpg', descripcion: 'Reloj inteligente con monitor de salud', precio: 150, tipoAnuncio: 'venta', tags: ['tech', 'wearable'], fechaPublicacion: new Date('2024-07-14') },
-  { nombre: 'Tablet', imagen: 'tablet.jpg', descripcion: 'Tablet de 10 pulgadas con pantalla HD', precio: 200, tipoAnuncio: 'venta', tags: ['tech', 'tablet'], fechaPublicacion: new Date('2024-07-15') },
-  { nombre: 'Auriculares Inalámbricos', imagen: 'wireless-headphones.jpg', descripcion: 'Auriculares inalámbricos con cancelación de ruido', precio: 180, tipoAnuncio: 'venta', tags: ['tech', 'audio'], fechaPublicacion: new Date('2024-07-16') },
+  {
+    nombre: 'Impresora 3D',
+    imagen: '3d-printer.jpg',
+    descripcion: 'Impresora 3D de alta precisión',
+    precio: 1000,
+    tipoAnuncio: 'venta',
+    tags: ['tech', '3d'],
+    fechaPublicacion: new Date('2024-07-01'),
+  },
+  {
+    nombre: 'Monitor 4K',
+    imagen: '4k-monitor.jpg',
+    descripcion: 'Monitor 4K UHD de 27 pulgadas',
+    precio: 400,
+    tipoAnuncio: 'venta',
+    tags: ['tech', 'monitor'],
+    fechaPublicacion: new Date('2024-07-02'),
+  },
+  {
+    nombre: 'Altavoces Bluetooth',
+    imagen: 'bluetooth-speakers.jpg',
+    descripcion: 'Altavoces portátiles Bluetooth con gran calidad de sonido',
+    precio: 150,
+    tipoAnuncio: 'venta',
+    tags: ['tech', 'audio'],
+    fechaPublicacion: new Date('2024-07-03'),
+  },
+  {
+    nombre: 'Drone',
+    imagen: 'drone.jpg',
+    descripcion: 'Drone con cámara 4K y estabilizador',
+    precio: 800,
+    tipoAnuncio: 'venta',
+    tags: ['tech', 'drone'],
+    fechaPublicacion: new Date('2024-07-04'),
+  },
+  {
+    nombre: 'Cámara DSLR',
+    imagen: 'dslr-camera.jpg',
+    descripcion: 'Cámara DSLR profesional, ideal para fotografía de paisajes.',
+    precio: 600,
+    tipoAnuncio: 'venta',
+    tags: ['tech', 'photo'],
+    fechaPublicacion: new Date('2024-07-05'),
+  },
+  {
+    nombre: 'iPhone 12',
+    imagen: 'iphone12.jpg',
+    descripcion: 'iPhone 12 en excelente estado, poco uso.',
+    precio: 500,
+    tipoAnuncio: 'venta',
+    tags: ['mobile', 'tech'],
+    fechaPublicacion: new Date('2024-07-06'),
+  },
+  {
+    nombre: 'MacBook Pro',
+    imagen: 'macbook-pro.jpg',
+    descripcion: 'MacBook Pro 2021, 16GB RAM, 512GB SSD.',
+    precio: 1200,
+    tipoAnuncio: 'venta',
+    tags: ['tech', 'work'],
+    fechaPublicacion: new Date('2024-07-07'),
+  },
+  {
+    nombre: 'Teclado Mecánico',
+    imagen: 'mechanical-keyboard.jpg',
+    descripcion: 'Teclado mecánico retroiluminado',
+    precio: 100,
+    tipoAnuncio: 'venta',
+    tags: ['tech', 'keyboard'],
+    fechaPublicacion: new Date('2024-07-08'),
+  },
+  {
+    nombre: 'Bicicleta de Montaña',
+    imagen: 'mountain-bike.jpg',
+    descripcion: 'Bicicleta de montaña casi nueva, ideal para principiantes.',
+    precio: 300,
+    tipoAnuncio: 'venta',
+    tags: ['lifestyle', 'sports'],
+    fechaPublicacion: new Date('2024-07-09'),
+  },
+  {
+    nombre: 'Nintendo Switch',
+    imagen: 'nintendo-switch.jpg',
+    descripcion: 'Consola Nintendo Switch con juegos incluidos',
+    precio: 350,
+    tipoAnuncio: 'venta',
+    tags: ['gaming', 'tech'],
+    fechaPublicacion: new Date('2024-07-10'),
+  },
+  {
+    nombre: 'Silla de Oficina',
+    imagen: 'office-chair.jpg',
+    descripcion: 'Silla ergonómica de oficina',
+    precio: 200,
+    tipoAnuncio: 'venta',
+    tags: ['furniture', 'office'],
+    fechaPublicacion: new Date('2024-07-11'),
+  },
+  {
+    nombre: 'PlayStation 5',
+    imagen: 'ps5.jpg',
+    descripcion: 'PS5 nueva, en caja sellada.',
+    precio: 450,
+    tipoAnuncio: 'venta',
+    tags: ['tech', 'gaming'],
+    fechaPublicacion: new Date('2024-07-12'),
+  },
+  {
+    nombre: 'Robot Aspiradora',
+    imagen: 'robot-vacuum.jpg',
+    descripcion: 'Robot aspiradora con programación automática',
+    precio: 250,
+    tipoAnuncio: 'venta',
+    tags: ['home', 'tech'],
+    fechaPublicacion: new Date('2024-07-13'),
+  },
+  {
+    nombre: 'Smartwatch',
+    imagen: 'smartwatch.jpg',
+    descripcion: 'Reloj inteligente con monitor de salud',
+    precio: 150,
+    tipoAnuncio: 'venta',
+    tags: ['tech', 'wearable'],
+    fechaPublicacion: new Date('2024-07-14'),
+  },
+  {
+    nombre: 'Tablet',
+    imagen: 'tablet.jpg',
+    descripcion: 'Tablet de 10 pulgadas con pantalla HD',
+    precio: 200,
+    tipoAnuncio: 'venta',
+    tags: ['tech', 'tablet'],
+    fechaPublicacion: new Date('2024-07-15'),
+  },
+  {
+    nombre: 'Auriculares Inalámbricos',
+    imagen: 'wireless-headphones.jpg',
+    descripcion: 'Auriculares inalámbricos con cancelación de ruido',
+    precio: 180,
+    tipoAnuncio: 'venta',
+    tags: ['tech', 'audio'],
+    fechaPublicacion: new Date('2024-07-16'),
+  },
 ];
 
 const generateData = async () => {
@@ -60,16 +188,18 @@ const generateData = async () => {
     await connectDB(mongoUri);
 
     // Crear usuarios
-    const usuariosCifrados = await Promise.all(usuariosData.map(async (usuario) => {
-      const contraseñaCifrada = await hashPassword(usuario.contraseña);
-      
-      return {
-        ...usuario,
-        contraseña: contraseñaCifrada
-      };
-    }));
+    const usuariosCifrados = await Promise.all(
+      usuariosData.map(async (usuario) => {
+        const contraseñaCifrada = await hashPassword(usuario.contraseña);
 
-    const usuarios = await Usuario.insertMany(usuariosCifrados);
+        return {
+          ...usuario,
+          contraseña: contraseñaCifrada,
+        };
+      }),
+    );
+
+    const usuarios = await User.insertMany(usuariosCifrados);
     console.log('Usuarios creados:', usuarios);
 
     // Crear anuncios
@@ -77,11 +207,11 @@ const generateData = async () => {
     for (let i = 0; i < anunciosData.length; i++) {
       const anuncio = anunciosData[i];
       const autor = usuarios[i % usuarios.length];
-      const slug =  await createSlug(anuncio.nombre ?? '');
+      const slug = await createSlug(anuncio.nombre ?? '');
       const nuevoAnuncio = new Anuncio({
         ...anuncio,
         autor: autor._id,
-        slug
+        slug,
       });
       await nuevoAnuncio.save();
       anunciosCreados.push(nuevoAnuncio);

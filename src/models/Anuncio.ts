@@ -1,31 +1,30 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { IUsuario } from './Usuario';
 import { EstadosAnuncio } from '../utils/anuncio';
 
-export interface IAnuncio extends Document {
-  nombre: string;
-  imagen: string;
-  descripcion: string;
-  precio: number;
-  tipoAnuncio: 'venta' | 'búsqueda';
+export interface IAdvert extends Document {
+  name: string;
+  image: string;
+  description: string;
+  price: number;
+  typeAdvert: 'venta' | 'búsqueda';
   tags: string[];
-  autor: mongoose.Types.ObjectId;
-  fechaPublicacion: Date;
+  author: mongoose.Types.ObjectId;
+  publicationDate: Date;
   slug: string;
-  estado: string;
+  state: string;
 }
 
-const AnuncioSchema: Schema = new Schema({
-  nombre: { type: String, required: true },
-  imagen: { type: String, required: true },
-  descripcion: { type: String, required: true },
-  precio: { type: Number, required: true },
-  tipoAnuncio: { type: String, enum: ['venta', 'búsqueda'], required: true },
+const AdvertSchema: Schema = new Schema({
+  name: { type: String, required: true },
+  image: { type: String, required: true },
+  description: { type: String, required: true },
+  price: { type: Number, required: true },
+  typeAdvert: { type: String, enum: ['venta', 'búsqueda'], required: true },
   tags: [{ type: String }],
-  autor: { type: Schema.Types.ObjectId, ref: 'Usuario', required: true },
-  fechaPublicacion: { type: Date, default: Date.now },
+  author: { type: Schema.Types.ObjectId, ref: 'Usuario', required: true },
+  publicationDate: { type: Date, default: Date.now },
   slug: { type: String, required: true },
-  estado: { type: String, required: true, default: EstadosAnuncio.DISPONIBLE },
+  state: { type: String, required: true, default: EstadosAnuncio.DISPONIBLE },
 });
 
-export default mongoose.model<IAnuncio>('Anuncio', AnuncioSchema);
+export default mongoose.model<IAdvert>('Advert', AdvertSchema);
