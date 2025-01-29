@@ -14,7 +14,6 @@ import { AppError, NotFoundError } from './utils/errors';
 import { getImage } from './controllers/imageController';
 import chatRoutes from './routes/chatRoutes';
 
-
 // Cargar variables de entorno
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
@@ -27,7 +26,9 @@ const app = express();
 // Configuración de CORS
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3001',
+    origin: process.env.FRONTEND_URL
+      ? [process.env.FRONTEND_URL, process.env.FRONTEND_DNS as string]
+      : 'http://localhost:3001',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,

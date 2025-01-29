@@ -15,11 +15,13 @@ const startServer = async () => {
   const server = http.createServer(app);
   const io = new Server(server, {
     cors: {
-      origin: process.env.FRONTEND_URL ?? 'http://localhost:3001',
+      origin: process.env.FRONTEND_URL
+        ? [process.env.FRONTEND_URL, process.env.FRONTEND_DNS as string]
+        : 'http://localhost:3001',
       methods: ['GET', 'POST'],
       allowedHeaders: ['Content-Type', 'Authorization'],
       credentials: true,
-    }
+    },
   });
 
   io.use((socket, next) => {
@@ -50,7 +52,7 @@ const startServer = async () => {
       socket.broadcast.to(room).emit('receive_message', message);
     });
   });
-  
+
   server.listen(PORT, () => {
     console.log(`Servidor corriendo en el puerto ${PORT}`);
     console.log('Environment variables:');
