@@ -6,11 +6,15 @@ console.log('Username:', process.env.REDIS_USERNAME ? 'Provided' : 'Not Provided
 console.log('SecretKey:', process.env.REDIS_SECRETACCESSKEY ? '********' : 'Not Provided');
 
 const redisClient = createClient({
-  username: String(process.env.REDIS_USERNAME),
-  password: String(process.env.REDIS_SECRETACCESSKEY),
+  username: String(process.env.REDIS_USERNAME) ? String(process.env.REDIS_USERNAME) : undefined,
+  password: String(process.env.REDIS_SECRETACCESSKEY)
+    ? String(process.env.REDIS_SECRETACCESSKEY)
+    : undefined,
   socket: {
-    host: String(process.env.REDIS_SOCKET_HOST),
-    port: Number(process.env.REDIS_SOCKET_PORT),
+    host: String(process.env.REDIS_SOCKET_HOST)
+      ? String(process.env.REDIS_SOCKET_HOST)
+      : 'localhost',
+    port: Number(process.env.REDIS_SOCKET_PORT) ? Number(process.env.REDIS_SOCKET_PORT) : 6379,
   },
 });
 
