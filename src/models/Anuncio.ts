@@ -22,7 +22,7 @@ const AdvertSchema: Schema = new Schema({
   price: { type: Number, required: true },
   typeAdvert: { type: String, enum: ['venta', 'búsqueda'], required: true },
   tags: [{ type: String }],
-  author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  author: { type: Schema.Types.ObjectId, ref: 'users', required: true },
   publicationDate: { type: Date, default: Date.now },
   slug: { type: String, required: true },
   state: { type: String, required: true, default: EstadosAnuncio.DISPONIBLE },
