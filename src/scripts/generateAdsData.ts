@@ -12,173 +12,173 @@ import { hashPassword } from '../utils/password';
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 interface Anuncio {
-  nombre: string;
-  imagen: string;
-  descripcion: string;
-  precio: number;
-  tipoAnuncio: 'venta' | 'búsqueda';
+  name: string;
+  image: string;
+  description: string;
+  price: number;
+  typeAdvert: 'venta' | 'búsqueda';
   tags: string[];
-  autor: Types.ObjectId;
-  fechaPublicacion: Date;
+  author: Types.ObjectId;
+  publicationDate: Date;
 }
 
 const usuariosData = [
-  { nombre: 'usuario1', email: 'usuario1@example.com', contraseña: 'password1' },
-  { nombre: 'usuario2', email: 'usuario2@example.com', contraseña: 'password2' },
-  { nombre: 'usuario3', email: 'usuario3@example.com', contraseña: 'password3' },
-  { nombre: 'usuario4', email: 'usuario4@example.com', contraseña: 'password4' },
-  { nombre: 'usuario5', email: 'usuario5@example.com', contraseña: 'password5' },
-  { nombre: 'usuario6', email: 'usuario6@example.com', contraseña: 'password6' },
-  { nombre: 'usuario7', email: 'usuario7@example.com', contraseña: 'password7' },
-  { nombre: 'usuario8', email: 'usuario8@example.com', contraseña: 'password8' },
-  { nombre: 'usuario9', email: 'usuario9@example.com', contraseña: 'password9' },
-  { nombre: 'usuario10', email: 'usuario10@example.com', contraseña: 'password10' },
+  { name: 'usuario1', email: 'usuario1@example.com', password: 'password1' },
+  { name: 'usuario2', email: 'usuario2@example.com', password: 'password2' },
+  { name: 'usuario3', email: 'usuario3@example.com', password: 'password3' },
+  { name: 'usuario4', email: 'usuario4@example.com', password: 'password4' },
+  { name: 'usuario5', email: 'usuario5@example.com', password: 'password5' },
+  { name: 'usuario6', email: 'usuario6@example.com', password: 'password6' },
+  { name: 'usuario7', email: 'usuario7@example.com', password: 'password7' },
+  { name: 'usuario8', email: 'usuario8@example.com', password: 'password8' },
+  { name: 'usuario9', email: 'usuario9@example.com', password: 'password9' },
+  { name: 'usuario10', email: 'usuario10@example.com', password: 'password10' },
 ];
 
 const anunciosData: Partial<Anuncio>[] = [
   {
-    nombre: 'Impresora 3D',
-    imagen: '3d-printer.jpg',
-    descripcion: 'Impresora 3D de alta precisión',
-    precio: 1000,
-    tipoAnuncio: 'venta',
+    name: 'Impresora 3D',
+    image: '3d-printer.jpg',
+    description: 'Impresora 3D de alta precisión',
+    price: 1000,
+    typeAdvert: 'venta',
     tags: ['tech', '3d'],
-    fechaPublicacion: new Date('2024-07-01'),
+    publicationDate: new Date('2024-07-01'),
   },
   {
-    nombre: 'Monitor 4K',
-    imagen: '4k-monitor.jpg',
-    descripcion: 'Monitor 4K UHD de 27 pulgadas',
-    precio: 400,
-    tipoAnuncio: 'venta',
+    name: 'Monitor 4K',
+    image: '4k-monitor.jpg',
+    description: 'Monitor 4K UHD de 27 pulgadas',
+    price: 400,
+    typeAdvert: 'venta',
     tags: ['tech', 'monitor'],
-    fechaPublicacion: new Date('2024-07-02'),
+    publicationDate: new Date('2024-07-02'),
   },
   {
-    nombre: 'Altavoces Bluetooth',
-    imagen: 'bluetooth-speakers.jpg',
-    descripcion: 'Altavoces portátiles Bluetooth con gran calidad de sonido',
-    precio: 150,
-    tipoAnuncio: 'venta',
+    name: 'Altavoces Bluetooth',
+    image: 'bluetooth-speakers.jpg',
+    description: 'Altavoces portátiles Bluetooth con gran calidad de sonido',
+    price: 150,
+    typeAdvert: 'venta',
     tags: ['tech', 'audio'],
-    fechaPublicacion: new Date('2024-07-03'),
+    publicationDate: new Date('2024-07-03'),
   },
   {
-    nombre: 'Drone',
-    imagen: 'drone.jpg',
-    descripcion: 'Drone con cámara 4K y estabilizador',
-    precio: 800,
-    tipoAnuncio: 'venta',
+    name: 'Drone',
+    image: 'drone.jpg',
+    description: 'Drone con cámara 4K y estabilizador',
+    price: 800,
+    typeAdvert: 'venta',
     tags: ['tech', 'drone'],
-    fechaPublicacion: new Date('2024-07-04'),
+    publicationDate: new Date('2024-07-04'),
   },
   {
-    nombre: 'Cámara DSLR',
-    imagen: 'dslr-camera.jpg',
-    descripcion: 'Cámara DSLR profesional, ideal para fotografía de paisajes.',
-    precio: 600,
-    tipoAnuncio: 'venta',
+    name: 'Cámara DSLR',
+    image: 'dslr-camera.jpg',
+    description: 'Cámara DSLR profesional, ideal para fotografía de paisajes.',
+    price: 600,
+    typeAdvert: 'venta',
     tags: ['tech', 'photo'],
-    fechaPublicacion: new Date('2024-07-05'),
+    publicationDate: new Date('2024-07-05'),
   },
   {
-    nombre: 'iPhone 12',
-    imagen: 'iphone12.jpg',
-    descripcion: 'iPhone 12 en excelente estado, poco uso.',
-    precio: 500,
-    tipoAnuncio: 'venta',
+    name: 'iPhone 12',
+    image: 'iphone12.jpg',
+    description: 'iPhone 12 en excelente estado, poco uso.',
+    price: 500,
+    typeAdvert: 'venta',
     tags: ['mobile', 'tech'],
-    fechaPublicacion: new Date('2024-07-06'),
+    publicationDate: new Date('2024-07-06'),
   },
   {
-    nombre: 'MacBook Pro',
-    imagen: 'macbook-pro.jpg',
-    descripcion: 'MacBook Pro 2021, 16GB RAM, 512GB SSD.',
-    precio: 1200,
-    tipoAnuncio: 'venta',
+    name: 'MacBook Pro',
+    image: 'macbook-pro.jpg',
+    description: 'MacBook Pro 2021, 16GB RAM, 512GB SSD.',
+    price: 1200,
+    typeAdvert: 'venta',
     tags: ['tech', 'work'],
-    fechaPublicacion: new Date('2024-07-07'),
+    publicationDate: new Date('2024-07-07'),
   },
   {
-    nombre: 'Teclado Mecánico',
-    imagen: 'mechanical-keyboard.jpg',
-    descripcion: 'Teclado mecánico retroiluminado',
-    precio: 100,
-    tipoAnuncio: 'venta',
+    name: 'Teclado Mecánico',
+    image: 'mechanical-keyboard.jpg',
+    description: 'Teclado mecánico retroiluminado',
+    price: 100,
+    typeAdvert: 'venta',
     tags: ['tech', 'keyboard'],
-    fechaPublicacion: new Date('2024-07-08'),
+    publicationDate: new Date('2024-07-08'),
   },
   {
-    nombre: 'Bicicleta de Montaña',
-    imagen: 'mountain-bike.jpg',
-    descripcion: 'Bicicleta de montaña casi nueva, ideal para principiantes.',
-    precio: 300,
-    tipoAnuncio: 'venta',
+    name: 'Bicicleta de Montaña',
+    image: 'mountain-bike.jpg',
+    description: 'Bicicleta de montaña casi nueva, ideal para principiantes.',
+    price: 300,
+    typeAdvert: 'venta',
     tags: ['lifestyle', 'sports'],
-    fechaPublicacion: new Date('2024-07-09'),
+    publicationDate: new Date('2024-07-09'),
   },
   {
-    nombre: 'Nintendo Switch',
-    imagen: 'nintendo-switch.jpg',
-    descripcion: 'Consola Nintendo Switch con juegos incluidos',
-    precio: 350,
-    tipoAnuncio: 'venta',
+    name: 'Nintendo Switch',
+    image: 'nintendo-switch.jpg',
+    description: 'Consola Nintendo Switch con juegos incluidos',
+    price: 350,
+    typeAdvert: 'venta',
     tags: ['gaming', 'tech'],
-    fechaPublicacion: new Date('2024-07-10'),
+    publicationDate: new Date('2024-07-10'),
   },
   {
-    nombre: 'Silla de Oficina',
-    imagen: 'office-chair.jpg',
-    descripcion: 'Silla ergonómica de oficina',
-    precio: 200,
-    tipoAnuncio: 'venta',
+    name: 'Silla de Oficina',
+    image: 'office-chair.jpg',
+    description: 'Silla ergonómica de oficina',
+    price: 200,
+    typeAdvert: 'venta',
     tags: ['furniture', 'office'],
-    fechaPublicacion: new Date('2024-07-11'),
+    publicationDate: new Date('2024-07-11'),
   },
   {
-    nombre: 'PlayStation 5',
-    imagen: 'ps5.jpg',
-    descripcion: 'PS5 nueva, en caja sellada.',
-    precio: 450,
-    tipoAnuncio: 'venta',
+    name: 'PlayStation 5',
+    image: 'ps5.jpg',
+    description: 'PS5 nueva, en caja sellada.',
+    price: 450,
+    typeAdvert: 'venta',
     tags: ['tech', 'gaming'],
-    fechaPublicacion: new Date('2024-07-12'),
+    publicationDate: new Date('2024-07-12'),
   },
   {
-    nombre: 'Robot Aspiradora',
-    imagen: 'robot-vacuum.jpg',
-    descripcion: 'Robot aspiradora con programación automática',
-    precio: 250,
-    tipoAnuncio: 'venta',
+    name: 'Robot Aspiradora',
+    image: 'robot-vacuum.jpg',
+    description: 'Robot aspiradora con programación automática',
+    price: 250,
+    typeAdvert: 'venta',
     tags: ['home', 'tech'],
-    fechaPublicacion: new Date('2024-07-13'),
+    publicationDate: new Date('2024-07-13'),
   },
   {
-    nombre: 'Smartwatch',
-    imagen: 'smartwatch.jpg',
-    descripcion: 'Reloj inteligente con monitor de salud',
-    precio: 150,
-    tipoAnuncio: 'venta',
+    name: 'Smartwatch',
+    image: 'smartwatch.jpg',
+    description: 'Reloj inteligente con monitor de salud',
+    price: 150,
+    typeAdvert: 'venta',
     tags: ['tech', 'wearable'],
-    fechaPublicacion: new Date('2024-07-14'),
+    publicationDate: new Date('2024-07-14'),
   },
   {
-    nombre: 'Tablet',
-    imagen: 'tablet.jpg',
-    descripcion: 'Tablet de 10 pulgadas con pantalla HD',
-    precio: 200,
-    tipoAnuncio: 'venta',
+    name: 'Tablet',
+    image: 'tablet.jpg',
+    description: 'Tablet de 10 pulgadas con pantalla HD',
+    price: 200,
+    typeAdvert: 'venta',
     tags: ['tech', 'tablet'],
-    fechaPublicacion: new Date('2024-07-15'),
+    publicationDate: new Date('2024-07-15'),
   },
   {
-    nombre: 'Auriculares Inalámbricos',
-    imagen: 'wireless-headphones.jpg',
-    descripcion: 'Auriculares inalámbricos con cancelación de ruido',
-    precio: 180,
-    tipoAnuncio: 'venta',
+    name: 'Auriculares Inalámbricos',
+    image: 'wireless-headphones.jpg',
+    description: 'Auriculares inalámbricos con cancelación de ruido',
+    price: 180,
+    typeAdvert: 'venta',
     tags: ['tech', 'audio'],
-    fechaPublicacion: new Date('2024-07-16'),
+    publicationDate: new Date('2024-07-16'),
   },
 ];
 
@@ -190,11 +190,11 @@ const generateData = async () => {
     // Crear usuarios
     const usuariosCifrados = await Promise.all(
       usuariosData.map(async (usuario) => {
-        const contraseñaCifrada = await hashPassword(usuario.contraseña);
+        const contraseñaCifrada = await hashPassword(usuario.password);
 
         return {
           ...usuario,
-          contraseña: contraseñaCifrada,
+          password: contraseñaCifrada,
         };
       }),
     );
@@ -206,11 +206,11 @@ const generateData = async () => {
     const anunciosCreados = [];
     for (let i = 0; i < anunciosData.length; i++) {
       const anuncio = anunciosData[i];
-      const autor = usuarios[i % usuarios.length];
-      const slug = await createSlug(anuncio.nombre ?? '');
+      const author = usuarios[i % usuarios.length];
+      const slug = await createSlug(anuncio.name ?? '');
       const nuevoAnuncio = new Anuncio({
         ...anuncio,
-        autor: autor._id,
+        author: author._id,
         slug,
       });
       await nuevoAnuncio.save();
