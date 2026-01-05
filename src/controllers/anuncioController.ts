@@ -165,13 +165,13 @@ const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> =>
       `Fetching anuncios for user ${nombreUsuario} with page: ${page}, limit: ${limit}, nombre: ${nombre}, tag: ${tag}, precioMin: ${precioMin}, precioMax: ${precioMax}, tipoAnuncio: ${tipoAnuncio}, sort: ${sort}`,
     );
 
-    const searchCriteria: any = { autor: usuario._id };
+    const searchCriteria: any = { author: usuario._id };
 
     // Búsqueda por texto en nombre y descripción
     if (nombre) {
       searchCriteria.$or = [
-        { nombre: { $regex: nombre, $options: 'i' } },
-        { descripcion: { $regex: nombre, $options: 'i' } },
+        { name: { $regex: nombre, $options: 'i' } },
+        { description: { $regex: nombre, $options: 'i' } },
       ];
     }
 
@@ -182,20 +182,20 @@ const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> =>
 
     // Filtro por rango de precio
     if (precioMin !== undefined || precioMax !== undefined) {
-      searchCriteria.precio = {};
+      searchCriteria.price = {};
       if (precioMin !== undefined) {
-        searchCriteria.precio.$gte = precioMin;
+        searchCriteria.price.$gte = precioMin;
         console.log('Adding min price to search criteria:', precioMin);
       }
       if (precioMax !== undefined) {
-        searchCriteria.precio.$lte = precioMax;
+        searchCriteria.price.$lte = precioMax;
         console.log('Adding max price to search criteria:', precioMax);
       }
     }
 
     // Filtro por tipo de anuncio
     if (tipoAnuncio) {
-      searchCriteria.tipoAnuncio = tipoAnuncio;
+      searchCriteria.typeAdvert = tipoAnuncio;
     }
 
     console.log('Search criteria:', JSON.stringify(searchCriteria, null, 2));
@@ -208,7 +208,7 @@ const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> =>
       .sort({ fechaPublicacion: sortOrder })
       .skip((page - 1) * limit)
       .limit(limit)
-      .populate('autor', 'nombre email')
+      .populate('author', 'name email')
       .lean<LeanAnuncio[]>();
 
     const processedAnuncios = anuncios.map((anuncio) => {
